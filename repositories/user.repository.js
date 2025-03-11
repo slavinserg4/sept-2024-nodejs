@@ -4,13 +4,17 @@ class UserRepository {
     async getAll() {
         return read()
     }
-
+    async getByName(name){
+        const users = await read()
+        const usersForReturn = []
+        usersForReturn.push(users.filter(user=>user.name.includes(name)))
+        return usersForReturn
+    }
     async create(user) {
         const users = await read();
         const newUser = {
             id: users.length ? users[users.length - 1].id + 1 : 1,
             name: user.name,
-            surname: user.surname,
             age: user.age
         }
         users.push(newUser)
@@ -24,7 +28,7 @@ class UserRepository {
     }
     async updateById(id, userData) {
         const users = await read();
-        const index = users.filter(user => user.id === Number(id));
+        const index = users.findIndex(user => user.id === Number(id));
         users[index] = {
             ...users[index],
             ...userData,

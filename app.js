@@ -8,7 +8,8 @@ app.use(express.urlencoded({extended:true}))
 
 
 app.get('/users', async (req, res)=>{
-    const data = await userService.getAll();
+    const name = req.query.name
+    const data = await userService.getAll(name);
     res.json(data)
 })
 app.get('/users/:id', async (req, res)=>{
