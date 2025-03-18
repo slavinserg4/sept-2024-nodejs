@@ -1,0 +1,52 @@
+import express, { Request, Response, NextFunction } from "express";
+import * as mongoose from "mongoose";
+import { config } from "./configs/config";
+import { apiRouter } from "./routers/api.router";
+import { ApiError } from "./errors/api.error";
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/", apiRouter);
+
+app.use(
+    "*",
+    (err: ApiError, req: Request, res: Response, next: NextFunction) => {
+        const status = err.status || 500;
+        const message = err.message ?? "Something went wrong";
+        res.status(status).json({ status, message });
+    },
+);
+
+process.on("uncaughtException", (err) => {
+    console.log("uncaughtException", err);
+    process.exit(1);
+});
+
+const dbConnection = async () => {
+    let dbCon = false;
+    while (!dbCon) {
+        try {
+            console.log("Connecting to db");
+            await mongoose.connect(config.MONGO_URI);
+            dbCon = true;
+            console.log("DB Available!!!!!!!!!");
+        } catch {
+            console.log("DataBase is unavailable");
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+    }
+};
+const start = async () => {
+    try {
+        await dbConnection();
+        app.listen(config.PORT, () => {
+            console.log(`Server is running on ${config.PORT} port`);
+        });
+    } catch (e) {
+        console.log(e);
+    }
+};
+start().catch();
